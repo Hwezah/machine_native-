@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ─── Design tokens ────────────────────────────────────────────────
+   Brand accent is a single variable (--accent) and stays themeable:
+   the SiteProvider rewrites it at runtime. Alternates from the design:
+   #FF5A1F, #5B8CFF, #E8E3D6. */
+:root {
+  --accent: #c6f24e;
+
+  --background: #0b0b0c;
+  --foreground: #edeae4;
+  --surface: #0e0e10;
+  --surface-hover: #131316;
+  --accent-tint: #101208;
+
+  /* shadcn/ui semantic tokens */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --primary: var(--accent);
+  --primary-foreground: #0b0b0c;
+  --secondary: var(--surface-hover);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-hover);
+  --muted-foreground: #908e88;
+  --accent-foreground: #0b0b0c;
+  --destructive: #ff6b5a;
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.14);
+  --ring: var(--accent);
+  --radius: 18px;
+}
+
+@theme inline {
+  --breakpoint-nav: 1060px;
+
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-2: #16161a;
+  --color-accent-tint: var(--accent-tint);
+
+  --color-ink: #edeae4;
+  --color-ink-2: #c7c4be;
+  --color-mute: #a8a59e;
+  --color-mute-2: #908e88;
+  --color-mute-3: #8e8c87;
+  --color-faint: #6e6c68;
+  --color-dim: #55534f;
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-card: 18px;
+
+  --animate-mn-marquee: mn-marquee 42s linear infinite;
+  --animate-mn-blink: mn-blink 1.8s ease-in-out infinite;
+  --animate-mn-spin: mn-spin 4s linear infinite;
+  --animate-mn-accordion-down: mn-accordion-down 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-mn-accordion-up: mn-accordion-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes mn-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes mn-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
+  }
+  @keyframes mn-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes mn-accordion-down {
+    from { height: 0; opacity: 0; }
+    to { height: var(--radix-accordion-content-height); opacity: 1; }
+  }
+  @keyframes mn-accordion-up {
+    from { height: var(--radix-accordion-content-height); opacity: 1; }
+    to { height: 0; opacity: 0; }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    overflow-x: hidden;
+  }
+  a {
+    @apply transition-colors;
+  }
+  ::selection {
+    background: var(--accent);
+    color: #0b0b0c;
+  }
+  h1, h2, h3, blockquote {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+@utility container-mn {
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: clamp(14px, 4vw, 48px);
+}
+
+/* Hide animated elements before hydration so GSAP can reveal them without a flash.
+   The `mn-js` class is set by an inline script in the root layout. */
+@media (prefers-reduced-motion: no-preference) {
+  .mn-js:not(.mn-static) [data-reveal],
+  .mn-js:not(.mn-static) .mn-w {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-mn-marquee,
+  .animate-mn-spin,
+  .animate-mn-blink {
+    animation-play-state: paused;
+  }
+}
