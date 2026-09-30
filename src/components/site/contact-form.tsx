@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { submitEnquiry, type EnquiryState } from "@/app/contact/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,10 @@ const initialState: EnquiryState = { status: "idle" };
 export function ContactForm() {
   const [state, formAction, pending] = useActionState(submitEnquiry, initialState);
   const sent = state.status === "success";
+
+  useEffect(() => {
+    if (state.status === "mailto" && state.mailto) window.location.href = state.mailto;
+  }, [state]);
 
   return (
     <form
@@ -74,11 +78,26 @@ export function ContactForm() {
       </div>
 
       <Button type="submit" size="block" className="mt-1.5 text-[15px]" disabled={pending || sent}>
-        {sent ? "Sent — we’ll reply within a day" : pending ? "Sending…" : "Send enquiry"}
+        {sent
+          ? "Sent — we’ll reply within a day"
+          : pending
+            ? "Sending…"
+            : state.status === "mailto"
+              ? "Opening your email app…"
+              : "Send enquiry"}
       </Button>
 
       <p role="status" aria-live="polite" className="min-h-0 text-[13px] text-destructive empty:hidden">
         {state.status === "error" ? state.message : ""}
+        {state.status === "mailto" ? (
+          <span className="text-mute-2">
+            Didn’t open? Email us at{" "}
+            <a href={state.mailto} className="text-accent underline-offset-4 hover:underline">
+              info@machinenative.co
+            </a>
+            .
+          </span>
+        ) : null}
       </p>
     </form>
   );

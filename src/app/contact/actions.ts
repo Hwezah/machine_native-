@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { getSupabase } from "@/lib/supabase/server";
 
+const ENQUIRY_EMAIL = "info@machinenative.co";
+
 const enquirySchema = z.object({
   name: z.string().trim().min(1, "Please tell us your name.").max(200),
   company: z.string().trim().max(200).optional(),
@@ -12,8 +14,10 @@ const enquirySchema = z.object({
 });
 
 export type EnquiryState = {
-  status: "idle" | "success" | "error";
+  status: "idle" | "success" | "error" | "mailto";
   message?: string;
+  /** Set when Supabase isn't configured: the client opens this pre-filled email instead. */
+  mailto?: string;
   fieldErrors?: Partial<Record<keyof z.infer<typeof enquirySchema>, string>>;
 };
 
@@ -40,10 +44,22 @@ export async function submitEnquiry(_prev: EnquiryState, formData: FormData): Pr
 
   const supabase = getSupabase();
   if (!supabase) {
-    console.error("[enquiry] Supabase is not configured (NEXT_PUBLIC_SUPABASE_URL / key missing).");
+    // No Supabase env vars yet: fall back to a pre-filled email so no enquiry is lost.
+    const d = parsed.data;
+    const body = [
+      `Name: ${d.name}`,
+      d.company ? `Company: ${d.company}` : null,
+      `Email: ${d.email}`,
+      d.budget ? `Budget: ${d.budget}` : null,
+      "",
+      d.message ?? "",
+    ]
+      .filter((l) => l !== null)
+      .join("\n");
+    const subject = `Project enquiry — ${d.name}${d.company ? `, ${d.company}` : ""}`;
     return {
-      status: "error",
-      message: "We couldn’t send that just now — please email info@machinenative.co instead.",
+      status: "mailto",
+      mailto: `mailto:${ENQUIRY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
     };
   }
 
